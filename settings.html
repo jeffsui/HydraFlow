@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置 - 水滴助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #0077B6 0%, #00B4D8 50%, #90E0EF 100%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .theme-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .theme-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .theme-card.active {
+            border: 3px solid #00B4D8;
+            transform: translateY(-5px);
+        }
+
+        .sound-btn {
+            transition: all 0.2s ease;
+        }
+
+        .sound-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .sound-btn.playing {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* 深色主题样式 */
+        .dark-theme {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+        .dark-theme nav {
+            background-color: #2d2d2d;
+            border-bottom-color: #404040;
+        }
+
+        .dark-theme .bg-white {
+            background-color: #2d2d2d !important;
+            color: #ffffff !important;
+        }
+
+        .dark-theme .text-gray-800 {
+            color: #ffffff !important;
+        }
+
+        .dark-theme .text-gray-700 {
+            color: #e5e5e5 !important;
+        }
+
+        .dark-theme .text-gray-600 {
+            color: #cccccc !important;
+        }
+
+        .dark-theme .bg-gray-50 {
+            background-color: #1a1a1a !important;
+        }
+
+        .dark-theme .bg-gray-100 {
+            background-color: #404040 !important;
+        }
+
+        .dark-theme .bg-gray-200 {
+            background-color: #4a4a4a !important;
+        }
+
+        .dark-theme .border-gray-300 {
+            border-color: #4a4a4a !important;
+        }
+
+        .dark-theme .gradient-bg {
+            background: linear-gradient(135deg, #1a365d 0%, #2d5a87 50%, #4a90b8 100%);
+        }
+
+        .dark-theme footer {
+            background-color: #1a1a1a;
+        }
+
+        /* 深色主题表单元素修复：确保输入框、选择框、文本域在深色模式下可读 */
+        .dark-theme input,
+        .dark-theme select,
+        .dark-theme textarea {
+            background-color: #404040 !important;
+            color: #f98282 !important;
+            border-color: #5a5a5a !important;
+        }
+
+        .dark-theme input:focus,
+        .dark-theme select:focus,
+        .dark-theme textarea:focus {
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12) !important;
+            /* 保留 focus 可见性 */
+            outline: none !important;
+        }
+
+        .dark-theme ::placeholder {
+            color: #cfcfcf !important;
+            opacity: 1 !important;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-lg fixed w-full top-0 z-[1000]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div
+                        class="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">💧</span>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-800">水滴助手</h1>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <button id="themeToggle" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+                        title="切换主题">
+                        <span id="themeIcon" class="text-xl">🌙</span>
+                    </button>
+                    <div class="flex space-x-6">
+                        <a href="index.html" class="text-gray-600 hover:text-blue-600 transition-colors">首页</a>
+                        <a href="stats.html" class="text-gray-600 hover:text-blue-600 transition-colors">统计</a>
+                        <a href="settings.html" class="text-blue-600 font-medium border-b-2 border-blue-600 pb-1">设置</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="pt-16">
+        <!-- 页面标题 -->
+        <section class="gradient-bg py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center text-white">
+                    <h2 class="text-4xl font-bold mb-4" style="font-family: 'Noto Serif SC', serif;">个性化设置</h2>
+                    <p class="text-xl opacity-90">根据您的需求定制专属的饮水提醒体验</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 设置内容 -->
+        <section class="py-12">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="space-y-8">
+                    <!-- 个人基本信息 -->
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                            <span class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                <span class="text-blue-600">👤</span>
+                            </span>
+                            个人基本信息
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">体重 (kg)</label>
+                                <input type="number" id="weight" min="30" max="200" value="65"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">活动强度</label>
+                                <select id="activityLevel"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="low">低 - 久坐办公</option>
+                                    <option value="medium" selected>中 - 轻度运动</option>
+                                    <option value="high">高 - 经常运动</option>
+                                    <option value="very-high">很高 - 高强度训练</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <button id="calculateGoal"
+                                class="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors">
+                                计算推荐饮水量
+                            </button>
+                            <div id="recommendedGoal" class="mt-4 p-4 bg-blue-50 rounded-xl hidden">
+                                <p class="text-blue-800 font-semibold">推荐每日饮水量: <span
+                                        id="recommendedAmount">2000</span>ml</p>
+                                <p class="text-sm text-blue-600 mt-1">基于您的体重和活动强度计算得出</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 目标设置 -->
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                            <span class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                <span class="text-green-600">🎯</span>
+                            </span>
+                            饮水目标设置
+                        </h3>
+
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">每日饮水目标 (ml)</label>
+                                <div class="flex items-center space-x-4">
+                                    <input type="range" id="dailyGoal" min="1000" max="4000" value="2000"
+                                        class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                    <span id="dailyGoalValue"
+                                        class="text-xl font-bold text-gray-700 min-w-20">2000ml</span>
+                                </div>
+                                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                    <span>1000ml</span>
+                                    <span>4000ml</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">提醒间隔 (分钟)</label>
+                                <div class="grid grid-cols-4 gap-3">
+                                    <button
+                                        class="interval-btn bg-blue-100 text-blue-700 py-3 px-4 rounded-xl font-semibold hover:bg-blue-200 transition-colors"
+                                        data-interval="30">30分钟</button>
+                                    <button
+                                        class="interval-btn bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold"
+                                        data-interval="60">60分钟</button>
+                                    <button
+                                        class="interval-btn bg-blue-100 text-blue-700 py-3 px-4 rounded-xl font-semibold hover:bg-blue-200 transition-colors"
+                                        data-interval="90">90分钟</button>
+                                    <button
+                                        class="interval-btn bg-blue-100 text-blue-700 py-3 px-4 rounded-xl font-semibold hover:bg-blue-200 transition-colors"
+                                        data-interval="120">120分钟</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 主题设置 -->
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                            <span class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                                <span class="text-purple-600">🎨</span>
+                            </span>
+                            界面主题
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="theme-card active bg-gradient-to-br from-blue-500 to-cyan-400 rounded-xl p-4 text-white"
+                                data-theme="default">
+                                <div class="text-lg font-semibold mb-2">清新蓝</div>
+                                <div class="text-sm opacity-90">默认主题</div>
+                            </div>
+                            <div class="theme-card bg-gradient-to-br from-green-500 to-teal-400 rounded-xl p-4 text-white"
+                                data-theme="nature">
+                                <div class="text-lg font-semibold mb-2">自然绿</div>
+                                <div class="text-sm opacity-90">清新自然</div>
+                            </div>
+                            <div class="theme-card bg-gradient-to-br from-orange-500 to-red-400 rounded-xl p-4 text-white"
+                                data-theme="warm">
+                                <div class="text-lg font-semibold mb-2">温暖橙</div>
+                                <div class="text-sm opacity-90">活力温暖</div>
+                            </div>
+                            <div class="theme-card bg-gradient-to-br from-gray-700 to-gray-900 rounded-xl p-4 text-white"
+                                data-theme="dark">
+                                <div class="text-lg font-semibold mb-2">深夜模式</div>
+                                <div class="text-sm opacity-90">护眼深色</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 音效设置 -->
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                            <span class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3">
+                                <span class="text-orange-600">🔊</span>
+                            </span>
+                            提醒音效
+                        </h3>
+
+                        <div class="space-y-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-gray-800">启用提醒音效</div>
+                                    <div class="text-sm text-gray-600">提醒时播放声音提示</div>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="soundEnabled" class="sr-only peer" checked>
+                                    <div
+                                        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-4">选择提醒音效</label>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <button
+                                        class="sound-btn bg-blue-100 text-blue-700 py-4 px-6 rounded-xl font-semibold hover:bg-blue-200 transition-colors"
+                                        data-sound="default">
+                                        <div class="text-2xl mb-2">🔔</div>
+                                        <div>经典铃声</div>
+                                        <div class="text-xs opacity-75 mt-1">清脆悦耳</div>
+                                    </button>
+                                    <button
+                                        class="sound-btn bg-green-100 text-green-700 py-4 px-6 rounded-xl font-semibold hover:bg-green-200 transition-colors"
+                                        data-sound="nature">
+                                        <div class="text-2xl mb-2">🌊</div>
+                                        <div>自然水声</div>
+                                        <div class="text-xs opacity-75 mt-1">舒缓放松</div>
+                                    </button>
+                                    <button
+                                        class="sound-btn bg-purple-100 text-purple-700 py-4 px-6 rounded-xl font-semibold hover:bg-purple-200 transition-colors"
+                                        data-sound="chime">
+                                        <div class="text-2xl mb-2">🎵</div>
+                                        <div>轻柔铃声</div>
+                                        <div class="text-xs opacity-75 mt-1">温和提醒</div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">音量</label>
+                                <div class="flex items-center space-x-4">
+                                    <span class="text-gray-500">🔈</span>
+                                    <input type="range" id="volume" min="0" max="100" value="70"
+                                        class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                    <span class="text-gray-500">🔊</span>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <span id="volumeValue" class="text-sm font-medium text-gray-700">70%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 数据管理 -->
+                    <div class="bg-white rounded-2xl shadow-lg p-8">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                            <span class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                                <span class="text-red-600">💾</span>
+                            </span>
+                            数据管理
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="p-4 bg-blue-50 rounded-xl">
+                                <div class="font-semibold text-blue-800 mb-2">导出数据</div>
+                                <div class="text-sm text-blue-600 mb-4">将您的饮水记录导出为JSON文件</div>
+                                <button id="exportSettingsData"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    导出数据
+                                </button>
+                            </div>
+
+                            <div class="p-4 bg-red-50 rounded-xl">
+                                <div class="font-semibold text-red-800 mb-2">重置数据</div>
+                                <div class="text-sm text-red-600 mb-4">清空所有历史记录和设置</div>
+                                <button id="resetAllData"
+                                    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                                    重置数据
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 保存按钮 -->
+                    <div class="text-center">
+                        <button id="saveSettings"
+                            class="bg-gradient-to-r from-blue-600 to-cyan-500 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                            保存设置
+                        </button>
+                        <div id="saveSuccess" class="mt-4 text-green-600 font-semibold hidden">
+                            ✓ 设置已保存成功！
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-400">© 2024 水滴助手. 让健康生活更简单</p>
+        </div>
+    </footer>
+
+    <script>
+        // 设置页面逻辑
+        const SettingsPage = {
+            settings: {
+                weight: 65,
+                activityLevel: 'medium',
+                dailyGoal: 2000,
+                reminderInterval: 60,
+                theme: 'default',
+                soundEnabled: true,
+                soundType: 'default',
+                volume: 70
+            },
+
+            init() {
+                this.loadSettings();
+                this.setupEventListeners();
+                this.updateUI();
+            },
+
+            loadSettings() {
+                const savedSettings = localStorage.getItem('waterReminderSettings');
+                if (savedSettings) {
+                    this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
+                }
+            },
+
+            saveSettings() {
+                localStorage.setItem('waterReminderSettings', JSON.stringify(this.settings));
+
+                // 同时更新主应用的数据
+                const mainData = JSON.parse(localStorage.getItem('waterReminderData') || '{}');
+                mainData.dailyGoal = this.settings.dailyGoal;
+                mainData.reminderInterval = this.settings.reminderInterval;
+                localStorage.setItem('waterReminderData', JSON.stringify(mainData));
+
+                this.showSaveSuccess();
+            },
+
+            setupEventListeners() {
+                // 体重输入
+                document.getElementById('weight').addEventListener('input', (e) => {
+                    this.settings.weight = parseInt(e.target.value);
+                });
+
+                // 活动强度
+                document.getElementById('activityLevel').addEventListener('change', (e) => {
+                    this.settings.activityLevel = e.target.value;
+                });
+
+                // 计算推荐饮水量
+                document.getElementById('calculateGoal').addEventListener('click', () => {
+                    this.calculateRecommendedGoal();
+                });
+
+                // 每日目标滑块
+                document.getElementById('dailyGoal').addEventListener('input', (e) => {
+                    this.settings.dailyGoal = parseInt(e.target.value);
+                    document.getElementById('dailyGoalValue').textContent = e.target.value + 'ml';
+                });
+
+                // 提醒间隔按钮
+                document.querySelectorAll('.interval-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const interval = parseInt(e.target.dataset.interval);
+                        this.settings.reminderInterval = interval;
+
+                        // 更新按钮样式
+                        document.querySelectorAll('.interval-btn').forEach(b => {
+                            b.className = 'interval-btn bg-blue-100 text-blue-700 py-3 px-4 rounded-xl font-semibold hover:bg-blue-200 transition-colors';
+                        });
+                        e.target.className = 'interval-btn bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold';
+                    });
+                });
+
+                // 主题选择
+                document.querySelectorAll('.theme-card').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        const theme = e.currentTarget.dataset.theme;
+                        this.settings.theme = theme;
+
+                        // 更新主题选择
+                        document.querySelectorAll('.theme-card').forEach(c => {
+                            c.classList.remove('active');
+                        });
+                        e.currentTarget.classList.add('active');
+                    });
+                });
+
+                // 音效开关
+                document.getElementById('soundEnabled').addEventListener('change', (e) => {
+                    this.settings.soundEnabled = e.target.checked;
+                });
+
+                // 音效选择
+                document.querySelectorAll('.sound-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const soundType = e.currentTarget.dataset.sound;
+                        this.settings.soundType = soundType;
+
+                        // 播放测试音效
+                        this.playTestSound(soundType);
+
+                        // 更新按钮样式
+                        document.querySelectorAll('.sound-btn').forEach(b => {
+                            b.classList.remove('playing');
+                        });
+                        e.currentTarget.classList.add('playing');
+
+                        setTimeout(() => {
+                            e.currentTarget.classList.remove('playing');
+                        }, 1000);
+                    });
+                });
+
+                // 音量控制
+                document.getElementById('volume').addEventListener('input', (e) => {
+                    this.settings.volume = parseInt(e.target.value);
+                    document.getElementById('volumeValue').textContent = e.target.value + '%';
+                });
+
+                // 数据管理
+                document.getElementById('exportSettingsData').addEventListener('click', () => {
+                    this.exportData();
+                });
+
+                document.getElementById('resetAllData').addEventListener('click', () => {
+                    this.resetAllData();
+                });
+
+                // 保存设置
+                document.getElementById('saveSettings').addEventListener('click', () => {
+                    this.saveSettings();
+                });
+            },
+
+            updateUI() {
+                // 更新体重
+                document.getElementById('weight').value = this.settings.weight;
+
+                // 更新活动强度
+                document.getElementById('activityLevel').value = this.settings.activityLevel;
+
+                // 更新每日目标
+                document.getElementById('dailyGoal').value = this.settings.dailyGoal;
+                document.getElementById('dailyGoalValue').textContent = this.settings.dailyGoal + 'ml';
+
+                // 更新提醒间隔按钮
+                document.querySelectorAll('.interval-btn').forEach(btn => {
+                    if (parseInt(btn.dataset.interval) === this.settings.reminderInterval) {
+                        btn.className = 'interval-btn bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold';
+                    } else {
+                        btn.className = 'interval-btn bg-blue-100 text-blue-700 py-3 px-4 rounded-xl font-semibold hover:bg-blue-200 transition-colors';
+                    }
+                });
+
+                // 更新主题
+                document.querySelectorAll('.theme-card').forEach(card => {
+                    if (card.dataset.theme === this.settings.theme) {
+                        card.classList.add('active');
+                    } else {
+                        card.classList.remove('active');
+                    }
+                });
+
+                // 更新音效开关
+                document.getElementById('soundEnabled').checked = this.settings.soundEnabled;
+
+                // 更新音量
+                document.getElementById('volume').value = this.settings.volume;
+                document.getElementById('volumeValue').textContent = this.settings.volume + '%';
+            },
+
+            calculateRecommendedGoal() {
+                let baseAmount = this.settings.weight * 35; // 基础计算：体重 * 35ml
+
+                // 根据活动强度调整
+                const activityMultiplier = {
+                    'low': 1.0,
+                    'medium': 1.1,
+                    'high': 1.3,
+                    'very-high': 1.5
+                };
+
+                const recommended = Math.round(baseAmount * activityMultiplier[this.settings.activityLevel]);
+
+                document.getElementById('recommendedAmount').textContent = recommended;
+                document.getElementById('recommendedGoal').classList.remove('hidden');
+
+                // 自动设置为目标
+                this.settings.dailyGoal = recommended;
+                document.getElementById('dailyGoal').value = recommended;
+                document.getElementById('dailyGoalValue').textContent = recommended + 'ml';
+            },
+
+            playTestSound(soundType) {
+                if (!this.settings.soundEnabled) return;
+
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                // 根据音效类型设置不同的频率
+                switch (soundType) {
+                    case 'default':
+                        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                        oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+                        break;
+                    case 'nature':
+                        oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                        oscillator.frequency.setValueAtTime(500, audioContext.currentTime + 0.2);
+                        oscillator.frequency.setValueAtTime(450, audioContext.currentTime + 0.4);
+                        break;
+                    case 'chime':
+                        oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+                        oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.1);
+                        oscillator.frequency.setValueAtTime(1200, audioContext.currentTime + 0.2);
+                        break;
+                }
+
+                // 设置音量
+                const volume = this.settings.volume / 100 * 0.3;
+                gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            },
+
+            exportData() {
+                const exportData = {
+                    settings: this.settings,
+                    timestamp: new Date().toISOString(),
+                    version: '1.0'
+                };
+
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `water_reminder_settings_${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+
+                URL.revokeObjectURL(url);
+            },
+
+            resetAllData() {
+                if (confirm('确定要重置所有数据吗？这将清空所有设置和历史记录，此操作不可恢复。')) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            },
+
+            showSaveSuccess() {
+                const successMsg = document.getElementById('saveSuccess');
+                successMsg.classList.remove('hidden');
+
+                setTimeout(() => {
+                    successMsg.classList.add('hidden');
+                }, 3000);
+            }
+        };
+
+        // 主题切换功能
+        const ThemeManager = {
+            theme: 'light',
+
+            init() {
+                this.loadTheme();
+                this.setupEventListener();
+                this.applyTheme();
+            },
+
+            loadTheme() {
+                const savedData = localStorage.getItem('waterReminderData');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    this.theme = data.theme || this.theme;
+                }
+                // 兼容独立存储的 theme 键
+                const themeKey = localStorage.getItem('theme');
+                if (themeKey === 'dark' || themeKey === 'light') {
+                    this.theme = themeKey;
+                }
+                console.log('Settings page loaded theme:', this.theme);
+            },
+
+            setupEventListener() {
+                const themeToggle = document.getElementById('themeToggle');
+                if (themeToggle) {
+                    themeToggle.addEventListener('click', () => {
+                        this.toggleTheme();
+                    });
+                }
+            },
+
+            toggleTheme() {
+                console.log('Settings page toggling theme from:', this.theme);
+                const body = document.body;
+                const themeIcon = document.getElementById('themeIcon');
+
+                if (!themeIcon) {
+                    console.error('Theme icon not found');
+                    return;
+                }
+
+                if (this.theme === 'light') {
+                    this.theme = 'dark';
+                    body.classList.add('dark-theme');
+                    body.classList.remove('bg-gray-50');
+                    themeIcon.textContent = '☀️';
+                } else {
+                    this.theme = 'light';
+                    body.classList.remove('dark-theme');
+                    body.classList.add('bg-gray-50');
+                    themeIcon.textContent = '🌙';
+                }
+
+                // 保存主题设置
+                const savedData = JSON.parse(localStorage.getItem('waterReminderData') || '{}');
+                savedData.theme = this.theme;
+                localStorage.setItem('waterReminderData', JSON.stringify(savedData));
+                // 同步独立 theme 键，便于直接观察
+                try {
+                    localStorage.setItem('theme', this.theme);
+                } catch (e) {
+                    console.error('保存 theme 键失败:', e);
+                }
+
+                console.log('Settings page theme changed to:', this.theme);
+
+                // 添加切换动画
+                anime({
+                    targets: themeIcon,
+                    rotate: '1turn',
+                    duration: 500,
+                    easing: 'easeInOutQuart'
+                });
+            },
+
+            applyTheme() {
+                const body = document.body;
+                const themeIcon = document.getElementById('themeIcon');
+
+                if (!themeIcon) {
+                    console.error('Theme icon not found when applying theme');
+                    return;
+                }
+
+                if (this.theme === 'dark') {
+                    body.classList.add('dark-theme');
+                    body.classList.remove('bg-gray-50');
+                    themeIcon.textContent = '☀️';
+                } else {
+                    body.classList.remove('dark-theme');
+                    body.classList.add('bg-gray-50');
+                    themeIcon.textContent = '🌙';
+                }
+
+                console.log('Settings page applied theme:', this.theme);
+            }
+        };
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            ThemeManager.init();
+            SettingsPage.init();
+        });
+    </script>
+</body>
+
+</html>
