@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水滴助手 - 智能喝水提醒</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        .hero-bg {
+            background: linear-gradient(135deg, #0077B6 0%, #00B4D8 50%, #90E0EF 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .water-ripple {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('resources/hero-bg.jpg') center/cover;
+            opacity: 0.3;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .water-level {
+            transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #0077B6, #00B4D8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .notification-popup {
+            transform: translateY(-100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .notification-popup.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        #waterCanvas {
+            border-radius: 50%;
+            box-shadow: 0 20px 40px rgba(0, 116, 217, 0.3);
+        }
+        
+        /* 深色主题样式 */
+        .dark-theme {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        .dark-theme nav {
+            background-color: #2d2d2d;
+            border-bottom-color: #404040;
+        }
+        
+        .dark-theme .bg-white {
+            background-color: #2d2d2d !important;
+            color: #ffffff !important;
+        }
+        
+        .dark-theme .text-gray-800 {
+            color: #ffffff !important;
+        }
+        
+        .dark-theme .text-gray-700 {
+            color: #e5e5e5 !important;
+        }
+        
+        .dark-theme .text-gray-600 {
+            color: #cccccc !important;
+        }
+        
+        .dark-theme .bg-gray-50 {
+            background-color: #1a1a1a !important;
+        }
+        
+        .dark-theme .bg-gray-100 {
+            background-color: #404040 !important;
+        }
+        
+        .dark-theme .bg-gray-200 {
+            background-color: #4a4a4a !important;
+        }
+        
+        .dark-theme .border-gray-300 {
+            border-color: #4a4a4a !important;
+        }
+        
+        .dark-theme .hero-bg {
+            background: linear-gradient(135deg, #1a365d 0%, #2d5a87 50%, #4a90b8 100%);
+        }
+        
+        .dark-theme .glass-effect {
+            background: rgba(45, 45, 45, 0.1);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .dark-theme .notification-popup {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+        
+        .dark-theme footer {
+            background-color: #1a1a1a;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-lg fixed w-full top-0 z-[1000]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">💧</span>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-800">水滴助手</h1>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <button id="themeToggle" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors" title="切换主题">
+                        <span id="themeIcon" class="text-xl">🌙</span>
+                    </button>
+                    <div class="flex space-x-6">
+                        <a href="index.html" class="text-blue-600 font-medium border-b-2 border-blue-600 pb-1">首页</a>
+                        <a href="stats.html" class="text-gray-600 hover:text-blue-600 transition-colors">统计</a>
+                        <a href="settings.html" class="text-gray-600 hover:text-blue-600 transition-colors">设置</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="pt-16">
+        <!-- 简洁标题区 -->
+        <section class="hero-bg py-12 relative">
+            <div class="water-ripple"></div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="text-center text-white">
+                    <h2 class="text-4xl font-bold mb-4" style="font-family: 'Noto Serif SC', serif;">保持水分充足</h2>
+                    <p class="text-xl opacity-90 mb-6">智能提醒，健康生活</p>
+                    <div class="glass-effect rounded-2xl p-6 inline-block">
+                        <div class="flex items-center space-x-8">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold" id="todayProgress">0%</div>
+                                <div class="text-sm opacity-80">今日完成</div>
+                            </div>
+                            <div class="w-px h-12 bg-white opacity-30"></div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold" id="todayAmount">0ml</div>
+                                <div class="text-sm opacity-80">已饮水量</div>
+                            </div>
+                            <div class="w-px h-12 bg-white opacity-30"></div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold" id="nextReminder">--:--</div>
+                                <div class="text-sm opacity-80">下次提醒</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 主要内容区域 -->
+        <section class="py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                    <!-- 左侧 - 水位动画和统计 -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-3xl shadow-xl p-8 h-full">
+                            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">今日进度</h3>
+                            
+                            <!-- 水位动画容器 -->
+                            <div class="flex justify-center mb-8">
+                                <div class="relative">
+                                    <div id="waterCanvasContainer" class="w-64 h-64"></div>
+                                </div>
+                            </div>
+
+                            <!-- 统计信息 -->
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center p-4 bg-blue-50 rounded-xl">
+                                    <span class="text-gray-700 font-medium">目标饮水量</span>
+                                    <span class="text-2xl font-bold text-blue-600" id="dailyGoal">2000ml</span>
+                                </div>
+                                <div class="flex justify-between items-center p-4 bg-green-50 rounded-xl">
+                                    <span class="text-gray-700 font-medium">剩余目标</span>
+                                    <span class="text-2xl font-bold text-green-600" id="remainingAmount">2000ml</span>
+                                </div>
+                                <div class="flex justify-between items-center p-4 bg-orange-50 rounded-xl">
+                                    <span class="text-gray-700 font-medium">提醒间隔</span>
+                                    <span class="text-2xl font-bold text-orange-600" id="reminderInterval">60分钟</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧 - 快速操作 -->
+                    <div class="lg:col-span-3">
+                        <div class="space-y-6">
+                            <!-- 快速记录 -->
+                            <div class="bg-white rounded-3xl shadow-xl p-8">
+                                <h3 class="text-2xl font-bold text-gray-800 mb-6">快速记录</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                    <button class="quick-add-btn bg-gradient-to-br from-blue-500 to-blue-600 text-white py-4 px-6 rounded-2xl font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200" data-amount="100">
+                                        💧 100ml
+                                    </button>
+                                    <button class="quick-add-btn bg-gradient-to-br from-cyan-500 to-cyan-600 text-white py-4 px-6 rounded-2xl font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200" data-amount="200">
+                                        🥤 200ml
+                                    </button>
+                                    <button class="quick-add-btn bg-gradient-to-br from-teal-500 to-teal-600 text-white py-4 px-6 rounded-2xl font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200" data-amount="250">
+                                        🍶 250ml
+                                    </button>
+                                    <button class="quick-add-btn bg-gradient-to-br from-green-500 to-green-600 text-white py-4 px-6 rounded-2xl font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200" data-amount="500">
+                                        🧊 500ml
+                                    </button>
+                                </div>
+                                
+                                <!-- 自定义输入 -->
+                                <div class="flex items-center space-x-4">
+                                    <input type="range" id="customAmount" min="50" max="1000" value="200" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                    <div class="flex items-center space-x-2">
+                                        <span id="customAmountValue" class="text-xl font-bold text-gray-700 min-w-16">200ml</span>
+                                        <button id="addCustomAmount" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                                            添加
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 提醒控制 -->
+                            <div class="bg-white rounded-3xl shadow-xl p-8">
+                                <h3 class="text-2xl font-bold text-gray-800 mb-6">提醒设置</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                                <span class="text-blue-600">🔔</span>
+                                            </div>
+                                            <div>
+                                                <div class="font-semibold text-gray-800">智能提醒</div>
+                                                <div class="text-sm text-gray-600">定时提醒喝水</div>
+                                            </div>
+                                        </div>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="reminderToggle" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-3 gap-3">
+                                        <button class="interval-btn bg-blue-100 text-blue-700 py-3 px-4 rounded-xl font-semibold hover:bg-blue-200 transition-colors" data-interval="30">30分钟</button>
+                                        <button class="interval-btn bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold" data-interval="60">60分钟</button>
+                                        <button class="interval-btn bg-blue-100 text-blue-700 py-3 px-4 rounded-xl font-semibold hover:bg-blue-200 transition-colors" data-interval="120">120分钟</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 今日成就 -->
+                            <div class="bg-white rounded-3xl shadow-xl p-8">
+                                <h3 class="text-2xl font-bold text-gray-800 mb-6">今日成就</h3>
+                                <div class="grid grid-cols-3 gap-4" id="achievements">
+                                    <div class="achievement-badge text-center p-4 bg-gray-100 rounded-xl opacity-50">
+                                        <div class="text-3xl mb-2">🏆</div>
+                                        <div class="text-sm font-semibold text-gray-600">首次记录</div>
+                                    </div>
+                                    <div class="achievement-badge text-center p-4 bg-gray-100 rounded-xl opacity-50">
+                                        <div class="text-3xl mb-2">⭐</div>
+                                        <div class="text-sm font-semibold text-gray-600">完成50%</div>
+                                    </div>
+                                    <div class="achievement-badge text-center p-4 bg-gray-100 rounded-xl opacity-50">
+                                        <div class="text-3xl mb-2">🎯</div>
+                                        <div class="text-sm font-semibold text-gray-600">完成目标</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 提醒通知弹窗 -->
+    <div id="notificationPopup" class="notification-popup fixed top-20 right-4 bg-white rounded-2xl shadow-2xl p-6 max-w-sm z-40">
+        <div class="flex items-center space-x-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-full flex items-center justify-center">
+                <span class="text-white text-xl">💧</span>
+            </div>
+            <div class="flex-1">
+                <h4 class="font-bold text-gray-800">喝水时间到了！</h4>
+                <p class="text-sm text-gray-600">该补充水分了，保持身体健康</p>
+            </div>
+            <button id="closeNotification" class="text-gray-400 hover:text-gray-600 text-xl">×</button>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-400">© 2024 水滴助手. 让健康生活更简单</p>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+</html>

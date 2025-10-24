@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据统计 - 水滴助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #0077B6 0%, #00B4D8 50%, #90E0EF 100%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .chart-container {
+            height: 300px;
+        }
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 深色主题样式 */
+        .dark-theme {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        .dark-theme nav {
+            background-color: #2d2d2d;
+            border-bottom-color: #404040;
+        }
+        
+        .dark-theme .bg-white {
+            background-color: #2d2d2d !important;
+            color: #ffffff !important;
+        }
+        
+        .dark-theme .text-gray-800 {
+            color: #ffffff !important;
+        }
+        
+        .dark-theme .text-gray-700 {
+            color: #e5e5e5 !important;
+        }
+        
+        .dark-theme .text-gray-600 {
+            color: #cccccc !important;
+        }
+        
+        .dark-theme .bg-gray-50 {
+            background-color: #1a1a1a !important;
+        }
+        
+        .dark-theme .bg-gray-100 {
+            background-color: #404040 !important;
+        }
+        
+        .dark-theme .bg-gray-200 {
+            background-color: #4a4a4a !important;
+        }
+        
+        .dark-theme .border-gray-200 {
+            border-color: #404040 !important;
+        }
+        
+        .dark-theme .border-gray-300 {
+            border-color: #4a4a4a !important;
+        }
+        
+        .dark-theme .gradient-bg {
+            background: linear-gradient(135deg, #1a365d 0%, #2d5a87 50%, #4a90b8 100%);
+        }
+        
+        .dark-theme footer {
+            background-color: #1a1a1a;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-lg fixed w-full top-0 z-[1000]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-400 rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">💧</span>
+                    </div>
+                    <h1 class="text-xl font-bold text-gray-800">水滴助手</h1>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <button id="themeToggle" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors" title="切换主题">
+                        <span id="themeIcon" class="text-xl">🌙</span>
+                    </button>
+                    <div class="flex space-x-6">
+                        <a href="index.html" class="text-gray-600 hover:text-blue-600 transition-colors">首页</a>
+                        <a href="stats.html" class="text-blue-600 font-medium border-b-2 border-blue-600 pb-1">统计</a>
+                        <a href="settings.html" class="text-gray-600 hover:text-blue-600 transition-colors">设置</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="pt-16">
+        <!-- 页面标题 -->
+        <section class="gradient-bg py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center text-white">
+                    <h2 class="text-4xl font-bold mb-4" style="font-family: 'Noto Serif SC', serif;">数据统计分析</h2>
+                    <p class="text-xl opacity-90">了解您的饮水习惯，保持健康生活方式</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 统计概览 -->
+        <section class="py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    <div class="stat-card bg-white rounded-2xl shadow-lg p-6">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span class="text-blue-600 text-xl">📊</span>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-gray-800" id="avgDaily">0ml</div>
+                                <div class="text-sm text-gray-600">日均饮水量</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card bg-white rounded-2xl shadow-lg p-6">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                <span class="text-green-600 text-xl">🎯</span>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-gray-800" id="completionRate">0%</div>
+                                <div class="text-sm text-gray-600">目标完成率</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card bg-white rounded-2xl shadow-lg p-6">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                                <span class="text-orange-600 text-xl">🔥</span>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-gray-800" id="streakDays">0</div>
+                                <div class="text-sm text-gray-600">连续达标天数</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card bg-white rounded-2xl shadow-lg p-6">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                                <span class="text-purple-600 text-xl">⏰</span>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-gray-800" id="avgInterval">0分钟</div>
+                                <div class="text-sm text-gray-600">平均间隔</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图表区域 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <!-- 今日24小时分布图 -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">今日饮水分布</h3>
+                        <div id="todayChart" class="chart-container"></div>
+                    </div>
+                    
+                    <!-- 近7天趋势图 -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">7天趋势</h3>
+                        <div id="weeklyChart" class="chart-container"></div>
+                    </div>
+                </div>
+
+                <!-- 月度统计 -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 mb-12">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">本月统计热力图</h3>
+                    <div id="monthlyChart" class="chart-container"></div>
+                </div>
+
+                <!-- 历史记录 -->
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-gray-800">历史记录</h3>
+                        <div class="flex space-x-2">
+                            <button id="exportData" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                导出数据
+                            </button>
+                            <button id="clearData" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                                清空数据
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-700">日期</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-700">总饮水量</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-700">目标完成率</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-700">记录次数</th>
+                                    <th class="text-left py-3 px-4 font-semibold text-gray-700">平均间隔</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTable">
+                                <tr>
+                                    <td colspan="5" class="text-center py-8 text-gray-500">暂无历史数据</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-400">© 2024 水滴助手. 让健康生活更简单</p>
+        </div>
+    </footer>
+
+    <script>
+        // 统计页面逻辑
+        const StatsPage = {
+            data: {
+                dailyGoal: 2000,
+                currentAmount: 0,
+                todayRecords: [],
+                historyData: []
+            },
+
+            init() {
+                this.loadData();
+                this.setupEventListeners();
+                this.updateOverview();
+                this.renderCharts();
+                this.renderHistoryTable();
+            },
+
+            loadData() {
+                const savedData = localStorage.getItem('waterReminderData');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    this.data = { ...this.data, ...data };
+                }
+                
+                // 生成模拟历史数据用于演示
+                this.generateMockData();
+            },
+
+            generateMockData() {
+                const today = new Date();
+                this.data.historyData = [];
+                
+                // 生成过去30天的数据
+                for (let i = 29; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    
+                    const baseAmount = 1800 + Math.random() * 600;
+                    const records = Math.floor(6 + Math.random() * 8);
+                    const completionRate = Math.min((baseAmount / this.data.dailyGoal) * 100, 100);
+                    
+                    this.data.historyData.push({
+                        date: date.toDateString(),
+                        amount: Math.round(baseAmount),
+                        completionRate: Math.round(completionRate),
+                        records: records,
+                        avgInterval: Math.round(120 / records)
+                    });
+                }
+            },
+
+            setupEventListeners() {
+                document.getElementById('exportData').addEventListener('click', this.exportData.bind(this));
+                document.getElementById('clearData').addEventListener('click', this.clearData.bind(this));
+            },
+
+            updateOverview() {
+                // 计算概览数据
+                const totalAmount = this.data.historyData.reduce((sum, day) => sum + day.amount, 0);
+                const avgDaily = Math.round(totalAmount / this.data.historyData.length);
+                const avgCompletion = Math.round(
+                    this.data.historyData.reduce((sum, day) => sum + day.completionRate, 0) / this.data.historyData.length
+                );
+                
+                // 计算连续达标天数
+                let streakDays = 0;
+                for (let i = this.data.historyData.length - 1; i >= 0; i--) {
+                    if (this.data.historyData[i].completionRate >= 100) {
+                        streakDays++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                // 计算平均间隔
+                const totalIntervals = this.data.historyData.reduce((sum, day) => sum + day.avgInterval, 0);
+                const avgInterval = Math.round(totalIntervals / this.data.historyData.length);
+                
+                // 更新显示
+                document.getElementById('avgDaily').textContent = avgDaily + 'ml';
+                document.getElementById('completionRate').textContent = avgCompletion + '%';
+                document.getElementById('streakDays').textContent = streakDays;
+                document.getElementById('avgInterval').textContent = avgInterval + '分钟';
+            },
+
+            renderCharts() {
+                this.renderTodayChart();
+                this.renderWeeklyChart();
+                this.renderMonthlyChart();
+            },
+
+            renderTodayChart() {
+                const chart = echarts.init(document.getElementById('todayChart'));
+                
+                // 生成今日24小时数据
+                const hours = [];
+                const data = [];
+                for (let i = 0; i < 24; i++) {
+                    hours.push(i + ':00');
+                    // 模拟合理的饮水分布
+                    let amount = 0;
+                    if (i >= 6 && i <= 22) {
+                        amount = Math.random() * 300;
+                        if (i === 8 || i === 12 || i === 18) amount += 200; // 主要饮水时间
+                    }
+                    data.push(Math.round(amount));
+                }
+                
+                const option = {
+                    tooltip: {
+                        trigger: 'axis',
+                        formatter: '{b}: {c}ml'
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: hours,
+                        axisLabel: {
+                            interval: 2
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: '饮水量(ml)'
+                    },
+                    series: [{
+                        data: data,
+                        type: 'bar',
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#00B4D8' },
+                                { offset: 1, color: '#0077B6' }
+                            ])
+                        },
+                        barWidth: '60%'
+                    }]
+                };
+                
+                chart.setOption(option);
+            },
+
+            renderWeeklyChart() {
+                const chart = echarts.init(document.getElementById('weeklyChart'));
+                
+                // 获取最近7天数据
+                const weekData = this.data.historyData.slice(-7);
+                const dates = weekData.map(day => new Date(day.date).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }));
+                const amounts = weekData.map(day => day.amount);
+                const goals = weekData.map(day => this.data.dailyGoal);
+                
+                const option = {
+                    tooltip: {
+                        trigger: 'axis',
+                        formatter: function(params) {
+                            return params[0].name + '<br/>' +
+                                   params[0].seriesName + ': ' + params[0].value + 'ml<br/>' +
+                                   params[1].seriesName + ': ' + params[1].value + 'ml';
+                        }
+                    },
+                    legend: {
+                        data: ['实际饮水量', '目标饮水量']
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: dates
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: '饮水量(ml)'
+                    },
+                    series: [
+                        {
+                            name: '实际饮水量',
+                            type: 'line',
+                            data: amounts,
+                            itemStyle: { color: '#00B4D8' },
+                            lineStyle: { width: 3 },
+                            symbol: 'circle',
+                            symbolSize: 8
+                        },
+                        {
+                            name: '目标饮水量',
+                            type: 'line',
+                            data: goals,
+                            itemStyle: { color: '#90BE6D' },
+                            lineStyle: { type: 'dashed', width: 2 },
+                            symbol: 'none'
+                        }
+                    ]
+                };
+                
+                chart.setOption(option);
+            },
+
+            renderMonthlyChart() {
+                const chart = echarts.init(document.getElementById('monthlyChart'));
+                
+                // 生成热力图数据
+                const data = [];
+                const startDate = new Date();
+                startDate.setDate(1);
+                
+                for (let i = 0; i < 31; i++) {
+                    const date = new Date(startDate);
+                    date.setDate(startDate.getDate() + i);
+                    
+                    if (date.getMonth() !== startDate.getMonth()) break;
+                    
+                    const dayData = this.data.historyData.find(d => 
+                        new Date(d.date).toDateString() === date.toDateString()
+                    );
+                    
+                    const completionRate = dayData ? dayData.completionRate : 0;
+                    data.push([
+                        date.getDate(),
+                        Math.floor(i / 7), // 周数
+                        completionRate
+                    ]);
+                }
+                
+                const option = {
+                    tooltip: {
+                        position: 'top',
+                        formatter: function(params) {
+                            return '第' + params.data[0] + '日<br/>完成率: ' + params.data[2] + '%';
+                        }
+                    },
+                    grid: {
+                        height: '50%',
+                        top: '10%'
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: ['日', '一', '二', '三', '四', '五', '六'],
+                        splitArea: {
+                            show: true
+                        }
+                    },
+                    yAxis: {
+                        type: 'category',
+                        data: ['第1周', '第2周', '第3周', '第4周', '第5周'],
+                        splitArea: {
+                            show: true
+                        }
+                    },
+                    visualMap: {
+                        min: 0,
+                        max: 100,
+                        calculable: true,
+                        orient: 'horizontal',
+                        left: 'center',
+                        bottom: '15%',
+                        inRange: {
+                            color: ['#e8f4f8', '#00B4D8', '#0077B6']
+                        }
+                    },
+                    series: [{
+                        name: '完成率',
+                        type: 'heatmap',
+                        data: data,
+                        label: {
+                            show: true,
+                            formatter: function(params) {
+                                return params.data[0];
+                            }
+                        },
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    }]
+                };
+                
+                chart.setOption(option);
+            },
+
+            renderHistoryTable() {
+                const tbody = document.getElementById('historyTable');
+                
+                if (this.data.historyData.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">暂无历史数据</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = this.data.historyData
+                    .slice(-10) // 显示最近10条记录
+                    .reverse()
+                    .map(day => `
+                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                            <td class="py-3 px-4">${new Date(day.date).toLocaleDateString('zh-CN')}</td>
+                            <td class="py-3 px-4 font-semibold">${day.amount}ml</td>
+                            <td class="py-3 px-4">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                    day.completionRate >= 100 ? 'bg-green-100 text-green-800' :
+                                    day.completionRate >= 80 ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-red-100 text-red-800'
+                                }">
+                                    ${day.completionRate}%
+                                </span>
+                            </td>
+                            <td class="py-3 px-4">${day.records}次</td>
+                            <td class="py-3 px-4">${day.avgInterval}分钟</td>
+                        </tr>
+                    `).join('');
+            },
+
+            exportData() {
+                const dataStr = JSON.stringify(this.data.historyData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `water_reminder_data_${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                
+                URL.revokeObjectURL(url);
+            },
+
+            clearData() {
+                if (confirm('确定要清空所有数据吗？此操作不可恢复。')) {
+                    localStorage.removeItem('waterReminderData');
+                    localStorage.removeItem('lastActiveDate');
+                    location.reload();
+                }
+            }
+        };
+
+        // 主题切换功能
+        const ThemeManager = {
+            theme: 'light',
+
+            init() {
+                this.loadTheme();
+                this.setupEventListener();
+                this.applyTheme();
+            },
+
+            loadTheme() {
+                const savedData = localStorage.getItem('waterReminderData');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    this.theme = data.theme || this.theme;
+                }
+                // 兼容独立存储的 theme 键
+                const themeKey = localStorage.getItem('theme');
+                if (themeKey === 'dark' || themeKey === 'light') {
+                    this.theme = themeKey;
+                }
+                console.log('Stats page loaded theme:', this.theme);
+            },
+
+            setupEventListener() {
+                const themeToggle = document.getElementById('themeToggle');
+                if (themeToggle) {
+                    themeToggle.addEventListener('click', () => {
+                        this.toggleTheme();
+                    });
+                }
+            },
+
+            toggleTheme() {
+                console.log('Stats page toggling theme from:', this.theme);
+                const body = document.body;
+                const themeIcon = document.getElementById('themeIcon');
+                
+                if (!themeIcon) {
+                    console.error('Theme icon not found');
+                    return;
+                }
+                
+                if (this.theme === 'light') {
+                    this.theme = 'dark';
+                    body.classList.add('dark-theme');
+                    body.classList.remove('bg-gray-50');
+                    themeIcon.textContent = '☀️';
+                } else {
+                    this.theme = 'light';
+                    body.classList.remove('dark-theme');
+                    body.classList.add('bg-gray-50');
+                    themeIcon.textContent = '🌙';
+                }
+                
+                // 保存主题设置
+                const savedData = JSON.parse(localStorage.getItem('waterReminderData') || '{}');
+                savedData.theme = this.theme;
+                localStorage.setItem('waterReminderData', JSON.stringify(savedData));
+                // 同步独立 theme 键，便于直接观察
+                try {
+                    localStorage.setItem('theme', this.theme);
+                } catch (e) {
+                    console.error('保存 theme 键失败:', e);
+                }
+                
+                console.log('Stats page theme changed to:', this.theme);
+                
+                // 添加切换动画
+                anime({
+                    targets: themeIcon,
+                    rotate: '1turn',
+                    duration: 500,
+                    easing: 'easeInOutQuart'
+                });
+            },
+
+            applyTheme() {
+                const body = document.body;
+                const themeIcon = document.getElementById('themeIcon');
+                
+                if (!themeIcon) {
+                    console.error('Theme icon not found when applying theme');
+                    return;
+                }
+                
+                if (this.theme === 'dark') {
+                    body.classList.add('dark-theme');
+                    body.classList.remove('bg-gray-50');
+                    themeIcon.textContent = '☀️';
+                } else {
+                    body.classList.remove('dark-theme');
+                    body.classList.add('bg-gray-50');
+                    themeIcon.textContent = '🌙';
+                }
+                
+                console.log('Stats page applied theme:', this.theme);
+            }
+        };
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            ThemeManager.init();
+            StatsPage.init();
+        });
+    </script>
+</body>
+</html>
